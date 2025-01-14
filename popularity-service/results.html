@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Links of Channels</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            color: #333;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            padding-bottom: 80px; /* Add space at the bottom for footer */
+        }
+        header {
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right */
+            align-items: center;
+            background-color: #2D3E50;
+            padding: 20px 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .company-info {
+            display: flex;
+            align-items: center;
+            color: white;
+            margin-right: auto; /* Push the buttons to the right */
+        }
+        .company-logo {
+            width: 30px; /* Adjust width as needed */
+            height: auto; /* Maintain aspect ratio */
+            margin-right: 10px; /* Space between logo and name */
+        }
+        .company-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        header button {
+            margin-left: 10px; /* Add space between buttons */
+            padding: 12px 25px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        header button:hover {
+            background-color: #0056b3;
+        }
+        h1 {
+            padding: 30px;
+            font-size: 2.5rem;
+            text-align: center;
+            color: #2D3E50;
+        }
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 12px 20px;
+            text-align: left;
+            font-size: 14px;
+        }
+        th {
+            background-color: #1E2A33;
+            color: white;
+            font-weight: bold;
+        }
+        tr {
+            background-color: #ffffff;
+            transition: background-color 0.3s ease;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        td:last-child {
+            text-align: center;
+        }
+        a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .action-btn {
+            padding: 8px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .action-btn:hover {
+            background-color: #218838;
+        }
+        footer {
+            background-color: #2D3E50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            font-size: 14px;
+            z-index: 10;
+        }
+        .date-filter-form {
+            text-align: center;
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px; /* Add space between form elements */
+        }
+        .date-filter-form label {
+            font-size: 1rem;
+        }
+        .date-filter-form input,
+        .date-filter-form select {
+            padding: 8px;
+            font-size: 1rem;
+            margin: 5px 0; /* Remove extra margin */
+            border-radius: 5px;
+        }
+        .date-filter-form button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        .date-filter-form button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with Logo and Buttons -->
+    <header>
+        <div class="company-info">
+            <img src="{{ url_for('static', filename='t.png') }}" alt="Neurotime Logo" class="company-logo">
+            <div class="company-name">NEUROTIME</div>
+        </div>
+        <button onclick="window.location.href='/tv_schedules'">TV Schedules</button>
+        <button onclick="window.location.href='/youtube_links'">YouTube Links</button>
+    </header>
+
+    <!-- Date Filter Form -->
+    <div class="date-filter-form">
+        <form action="/youtube_links" method="GET">
+            <label for="start_date">Start Date: </label>
+            <input type="date" id="start_date" name="start_date">
+    
+            <label for="end_date">End Date: </label>
+            <input type="date" id="end_date" name="end_date">
+            
+            <label for="stream_name">Stream Name:</label>
+            <select name="stream_name" id="stream_name" required>
+                <option disabled selected>Select Stream Name</option>
+                <!-- Stream names will be populated by JavaScript -->
+            </select>
+    
+            <button type="submit">Fetch Data</button>
+        </form>
+    </div>
+
+    <!-- Table Section -->
+    <h1>YouTube Links of Channels</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Stream Name</th>
+                <th>Link</th>
+                <th>Release Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in results %}
+            <tr>
+                <td>{{ row['id'] }}</td>
+                <td>{{ row['title'] }}</td>
+                <td>{{ row['stream_name'] }}</td>
+                <td><a href="{{ row['link'] }}" target="_blank">{{ row['link'] }}</a></td>
+                <td>{{ row['release_date'] }}</td>
+                <td><button class="action-btn" onclick="toggleButton(this)">+</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Your Website | All Rights Reserved</p>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        function toggleButton(button) {
+            if (button.textContent === "+") {
+                button.textContent = "Verified";
+                button.style.backgroundColor = "#007BFF"; // Change to blue
+            } else {
+                button.textContent = "+";
+                button.style.backgroundColor = "#28a745"; // Change back to green
+            }
+        }
+        window.onload = function() {
+            // Fetch stream names when the page loads
+            fetch('/fetch_stream_names')
+                .then(response => response.json())
+                .then(data => {
+                    const streamSelect = document.getElementById('stream_name');
+                    
+                    // Clear the dropdown first
+                    streamSelect.innerHTML = '<option disabled selected>Select Stream Name</option>';
+    
+                    // Populate the dropdown with the stream names
+                    data.forEach(streamName => {
+                        const option = document.createElement('option');
+                        option.value = streamName;
+                        option.textContent = streamName;
+                        streamSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching stream names:', error);
+                });
+        }
+    </script>
+</body>
+</html>

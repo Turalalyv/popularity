@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2D3E50;
+            padding: 20px 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        header .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+        }
+        header .company-info {
+            display: flex;
+            align-items: center;
+        }
+        header .company-logo {
+            width: 40px; /* Adjust the size of the logo */
+            height: auto;
+            margin-right: 10px;
+        }
+        header button {
+            margin-left: 10px;
+            padding: 12px 25px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        header button:hover {
+            background-color: #0056b3;
+        }
+        h1 {
+            padding: 30px;
+            font-size: 2.5rem;
+            text-align: center;
+            color: #2D3E50;
+        }
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .login-form h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .login-form input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .login-form button {
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .login-form button:hover {
+            background-color: #218838;
+        }
+        footer {
+            background-color: #2D3E50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <div class="company-info">
+            <img src="{{ url_for('static', filename='t.png') }}" alt="Neurotime Logo" class="company-logo">
+            <div class="company-name">NEUROTIME</div>
+        </div>
+        <div>
+            <button>Home</button>
+            <button>About</button>
+        </div>
+    </header>
+
+    <!-- Login Form Section -->
+    <div class="login-form">
+        <h2>Admin Login</h2>
+        <form action="/admin_login" method="POST">
+            <input type="text" name="admin_name" placeholder="Enter Admin Name" required>
+            <input type="password" name="password" placeholder="Enter Password" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <!-- Footer Section -->
+    <footer>
+        <p>&copy; 2025 Neurotime | All Rights Reserved</p>
+    </footer>
+</body>
+</html>

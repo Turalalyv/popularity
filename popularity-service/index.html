@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Schedules</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2D3E50;
+            padding: 20px 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        header .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+        }
+        header button {
+            margin-left: 10px;
+            padding: 12px 25px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        header button:hover {
+            background-color: #0056b3;
+        }
+        .company-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .company-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+        h1 {
+            padding: 30px;
+            font-size: 2.5rem;
+            text-align: center;
+            color: #2D3E50;
+        }
+        form {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        form input {
+            padding: 8px;
+            font-size: 16px;
+        }
+        form button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        form button:hover {
+            background-color: #218838;
+        }
+        .content-wrapper {
+            padding-bottom: 80px; /* To prevent footer overlap */
+        }
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 12px 20px;
+            text-align: left;
+            font-size: 14px;
+        }
+        th {
+            background-color: #1E2A33;
+            color: white;
+            font-weight: bold;
+        }
+        tr {
+            background-color: #ffffff;
+            transition: background-color 0.3s ease;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        td:last-child {
+            text-align: center;
+        }
+        .action-btn {
+            padding: 8px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .action-btn:hover {
+            background-color: #0056b3;
+        }
+        footer {
+            background-color: #2D3E50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            font-size: 14px;
+        }
+        .add-row {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .add-row button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .add-row button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script>
+        let streamNames = []; // Array to store the stream names
+
+        // Fetch stream names once when the page loads
+        window.onload = function() {
+            fetch('/get_stream_names')
+                .then(response => response.json())
+                .then(data => {
+                    streamNames = data.map(stream => stream.stream_name); // Store the stream names
+                    populateStreamNameDropdown(); // Populate the dropdown after the data is loaded
+                })
+                .catch(error => console.error('Error fetching stream names:', error));
+        };
+        
+        // Function to populate the stream names dropdown dynamically
+        function populateStreamNameDropdown() {
+            const streamSelect = document.querySelector("select[name='stream_name']");
+            if (streamNames.length === 0) {
+                streamSelect.disabled = true;  // Disable the dropdown if no names are available
+                alert('Stream names are still loading. Please wait.');
+                return;
+            }
+        
+            // Populate the dropdown with the stream names
+            streamNames.forEach(name => {
+                const option = document.createElement("option");
+                option.value = name;
+                option.textContent = name;
+                streamSelect.appendChild(option);
+            });
+        
+            // Enable the dropdown after the stream names are populated
+            streamSelect.disabled = false;
+        }
+        
+        // Function to add a new row with a dropdown for selecting stream name
+        function addRow() {
+            if (streamNames.length === 0) {
+                alert('Stream names are still loading. Please wait.');
+                return;
+            }
+        
+            const table = document.getElementById("scheduleTable").getElementsByTagName("tbody")[0];
+            const newRow = table.insertRow();
+        
+            const idCell = newRow.insertCell(0);
+            const streamNameCell = newRow.insertCell(1);
+            const programNameCell = newRow.insertCell(2);
+            const startTimeCell = newRow.insertCell(3);
+            const youtubeLinkCell = newRow.insertCell(4);
+            const actionCell = newRow.insertCell(5);
+        
+            idCell.innerHTML = "<input type='text' placeholder='ID'>";
+            streamNameCell.innerHTML = `<select id='stream_name_new'>
+                <option disabled selected>Select Stream Name</option>
+                ${streamNames.map(name => `<option value="${name}">${name}</option>`).join('')}
+            </select>`;
+            programNameCell.innerHTML = "<input type='text' placeholder='Program Name'>";
+            startTimeCell.innerHTML = "<input type='datetime-local'>";
+            youtubeLinkCell.innerHTML = "<input type='text' placeholder='YouTube Link'>";
+            actionCell.innerHTML = `<button class="action-btn" onclick="updateSchedule('new')">Update</button>`;
+        }
+    </script>
+</head>
+<body>
+    <!-- Header with Buttons -->
+    <header>
+        <div class="company-info">
+            <img src="{{ url_for('static', filename='t.png') }}" alt="Neurotime Logo" class="company-logo">
+            <div class="company-name">NEUROTIME</div>
+        </div>
+        <div>
+            <button onclick="window.location.href='/tv_schedules'">TV Schedules</button>
+            <button onclick="window.location.href='/youtube_links'">YouTube Links</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="content-wrapper">
+        <h1>TV Schedules</h1>
+        <form method="post">
+            <label>Start Date: <input type="date" name="start_date" required></label>
+            <label>End Date: <input type="date" name="end_date" required></label>
+            <label>
+                Stream Name:
+                <select name="stream_name" required style="padding: 8px; font-size: 16px; border-radius: 5px;">
+                    <option disabled selected>Select Stream Name</option>
+                </select>
+            </label>
+            <button type="submit">Fetch Data</button>
+        </form>
+
+        <!-- Table Section -->
+        <table id="scheduleTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Stream Name</th>
+                    <th>Program Name</th>
+                    <th>Start Time</th>
+                    <th>YouTube Link</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if data %}
+                    {% for row in data %}
+                    <tr>
+                        <td>{{ row.id }}</td>
+                        <td>{{ row.stream_name }}</td>
+                        <td>{{ row.program_name }}</td>
+                        <td>{{ row.start_time }}</td>
+                        <td>
+                            <input type="text" id="youtube_link_{{ row.id }}" value="{{ row.youtube_link or '' }}">
+                        </td>
+                        <td>
+                            <button type="button" class="action-btn" onclick="updateSchedule({{ row.id }})">Update</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="6">No data available</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <!-- Add Row Section -->
+        <div class="add-row">
+            <button onclick="addRow()">+ Add New Row</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Neurotime | All Rights Reserved</p>
+    </footer>
+</body>
+</html>
