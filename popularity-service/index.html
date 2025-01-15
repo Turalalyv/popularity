@@ -184,33 +184,232 @@
             streamSelect.disabled = false;
         }
         
-        // Function to add a new row with a dropdown for selecting stream name
-        function addRow() {
-            if (streamNames.length === 0) {
-                alert('Stream names are still loading. Please wait.');
-                return;
-            }
+    // Fetch programs when a stream name is selected
+    function fetchPrograms(event, rowId) {
+        const streamName = event.target.value; // Get selected stream name
+        const programNameCell = document.querySelector(`#program_name_${rowId}`);
         
-            const table = document.getElementById("scheduleTable").getElementsByTagName("tbody")[0];
-            const newRow = table.insertRow();
-        
-            const idCell = newRow.insertCell(0);
-            const streamNameCell = newRow.insertCell(1);
-            const programNameCell = newRow.insertCell(2);
-            const startTimeCell = newRow.insertCell(3);
-            const youtubeLinkCell = newRow.insertCell(4);
-            const actionCell = newRow.insertCell(5);
-        
-            idCell.innerHTML = "<input type='text' placeholder='ID'>";
-            streamNameCell.innerHTML = `<select id='stream_name_new'>
-                <option disabled selected>Select Stream Name</option>
-                ${streamNames.map(name => `<option value="${name}">${name}</option>`).join('')}
-            </select>`;
-            programNameCell.innerHTML = "<input type='text' placeholder='Program Name'>";
-            startTimeCell.innerHTML = "<input type='datetime-local'>";
-            youtubeLinkCell.innerHTML = "<input type='text' placeholder='YouTube Link'>";
-            actionCell.innerHTML = `<button class="action-btn" onclick="updateSchedule('new')">Update</button>`;
+        // Clear any existing content in the Program Name cell
+        programNameCell.innerHTML = "<span>Loading...</span>";
+
+        // Fetch programs from the backend
+        fetch(`/get_programs?stream_name=${streamName}`)
+            .then(response => response.json())
+            .then(data => {
+                // Populate the Program Name cell
+                if (data.length > 0) {
+                    // Create a dropdown if programs are found
+                    const dropdown = document.createElement("select");
+                    dropdown.id = `program_dropdown_${rowId}`;
+                    dropdown.innerHTML = data.map(
+                        program => `<option value="${program}">${program}</option>`
+                    ).join("");
+                    programNameCell.innerHTML = ""; // Clear the loading text
+                    programNameCell.appendChild(dropdown);
+                } else {
+                    // Convert to manual input if no programs are found
+                    const input = document.createElement("input");
+                    input.type = "text";
+                    input.placeholder = "Enter Program Name";
+                    input.id = `program_input_${rowId}`;
+                    programNameCell.innerHTML = ""; // Clear the loading text
+                    programNameCell.appendChild(input);
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching programs:", error);
+                programNameCell.innerHTML = "<span>Error loading programs</span>";
+            });
+    }
+
+    // Function to add a new row
+    function addRow() {
+        if (streamNames.length === 0) {
+            alert('Stream names are still loading. Please wait.');
+            return;
         }
+
+        const table = document.getElementById("scheduleTable").getElementsByTagName("tbody")[0];
+        const rowId = `row_${table.rows.length}`;
+        const newRow = table.insertRow();
+
+        const idCell = newRow.insertCell(0);
+        const streamNameCell = newRow.insertCell(1);
+        const programNameCell = newRow.insertCell(2);
+        const startTimeCell = newRow.insertCell(3);
+        const youtubeLinkCell = newRow.insertCell(4);
+        const actionCell = newRow.insertCell(5);
+
+        idCell.innerHTML = `<input type='text' placeholder='ID'>`;
+        streamNameCell.innerHTML = `<select id='stream_name_${rowId}' onchange="fetchPrograms(event, '${rowId}')">
+            <option disabled selected>Select Stream Name</option>
+            ${streamNames.map(name => `<option value="${name}">${name}</option>`).join('')}
+        </select>`;
+        programNameCell.id = `program_name_${rowId}`;
+        programNameCell.innerHTML = `<input type='text' placeholder='Program Name'>`;
+        startTimeCell.innerHTML = `<input id='start_time_${rowId}' type='datetime-local'>`;
+        youtubeLinkCell.innerHTML = `<input id='start_time_${rowId}'type='text' placeholder='YouTube Link'>`;
+        actionCell.innerHTML = `<button class="action-btn" onclick="insertSchedule('${rowId}')">Insert</button>`;
+    }
+
+    function updateSchedule(rowId) {
+        // Retrieve the YouTube link for the specified rowId
+        const youtubeLinkElement = document.querySelector(`#youtube_link_${rowId} input`);
+        if (!youtubeLinkElement) {
+            console.error(`Element with ID #youtube_link_${rowId} not found`);
+            return;
+        }
+        const youtubeLink = youtubeLinkElement.value?.trim() || null;
+    
+        // Get the ID of the row (assuming it's stored in an element within the row)
+        const rowIdElement = document.querySelector(`#row_id_${rowId}`);
+        if (!rowIdElement) {
+            console.error(`Element with ID #row_id_${rowId} not found`);
+            return;
+        }
+        const rowIdValue = rowIdElement.innerText?.trim();
+    
+        if (!rowIdValue) {
+            console.error('Row ID not found or is empty');
+            return;
+        }
+    
+        // Data to send to the backend
+        const data = {
+            rowId: rowIdValue,
+            youtubeLink: youtubeLink,
+        };
+    
+        console.log('Data to send:', data);
+    
+        try {
+            // Send the data to the backend (you will need to define the server-side logic)
+            updateProgramData(data);
+        } catch (error) {
+            console.error('Error sending data to backend:', error);
+        }
+    }
+    
+    function updateSchedule(rowId) {
+        console.log(`Updating schedule for rowId: ${rowId}`);
+        
+        const youtubeLinkElement = document.querySelector(`#youtube_link_${rowId}`);
+        
+        if (!youtubeLinkElement) {
+            console.error(`YouTube link element not found for rowId ${rowId}`);
+            return;
+        }
+        
+        const youtubeLink = youtubeLinkElement.value?.trim() || null;
+    
+        const data = {
+            rowId: rowId,
+            youtubeLink: youtubeLink
+        };
+    
+        fetch('/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.status === 'success') {
+                alert(result.message);
+            } else {
+                throw new Error(result.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating schedule:', error);
+            alert('Error updating schedule: ' + error.message);
+        });
+    }
+    
+
+
+    function insertSchedule(rowId) {
+        console.log(`insertSchedule triggered for rowId: ${rowId}`);
+    
+        // Stream Name
+        const streamElement = document.querySelector(`#stream_name_${rowId}`);
+        if (!streamElement) {
+            console.error(`Element with ID #stream_name_${rowId} not found`);
+            return;
+        }
+        const streamName = streamElement.value?.trim();
+        if (!streamName) {
+            console.error('Stream name is required');
+            return;
+        }
+    
+        // Program Name (dropdown inside <td>)
+        const programDropdown = document.querySelector(`#program_dropdown_${rowId}`);
+        console.log('Program Dropdown:', programDropdown);
+        if (!programDropdown) {
+            console.error(`Dropdown with ID #program_dropdown_${rowId} not found`);
+            return;
+        }
+        const programName = programDropdown.value?.trim();
+        console.log('Program Name:', programName);
+        if (!programName) {
+            console.error('Program name is required');
+            return;
+        }
+    
+        // Start Time (check for input element inside the td)
+        const startTimeElement = document.querySelector(`#start_time_${rowId}`);
+        console.log('Start Time Element:', startTimeElement);  // Log to check if it's found
+        if (!startTimeElement) {
+            console.error('Start time input element not found');
+            return;
+        }
+        const startTime = startTimeElement.value?.trim();
+        console.log('Start Time:', startTime);
+        if (!startTime) {
+            console.error('Start time is required');
+            return;
+        }
+    
+        // YouTube Link (optional)
+        const youtubeElement = document.querySelector(`#youtube_link_${rowId} input`);
+        const youtubeLink = youtubeElement?.value?.trim() || null;
+        
+    
+        // Data to send
+        const data = {
+            streamName,
+            programName,
+            startTime,
+            youtubeLink,
+        };
+    
+        console.log('Data to send:', data);
+    
+
+        fetch('/insert', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.status === 'success') {
+                alert(result.message);
+            } else {
+                throw new Error(result.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating schedule:', error);
+            alert('Error updating schedule: ' + error.message);
+        });
+    }
+        
     </script>
 </head>
 <body>
